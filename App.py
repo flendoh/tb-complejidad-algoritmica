@@ -70,7 +70,6 @@ class App:
                 )
     
     def update_board(self):
-        #dpg.delete_item(self.table_window, children_only=True)
         self.draw_table()
         for i in range(8):
             for j in range(8):
@@ -167,12 +166,13 @@ class App:
         pos2_x = dpg.get_value(self.pos2_x)
         pos2_y = dpg.get_value(self.pos2_y)
         if self.turno == JUGADOR_1 and self.table[pos1_y][pos1_x] == JUGADOR_1 and self.table[pos2_y][pos2_x] == VACIO:
-            movimiento = ((pos1_y, pos1_x), (pos2_y, pos2_x))
-            self.hacer_movimiento(movimiento)
-            self.add_text_log(f"Jugador 1 movió de ({pos1_x}, {pos1_y}) a ({pos2_x}, {pos2_y})")
-            self.turno = JUGADOR_2
-            self.add_text_log("Turno del Bot")
-            self.realizar_movimiento_bot()
+            if ((pos2_y, pos2_x) == (pos1_y+1, pos1_x-1)) or ((pos2_y, pos2_x) == (pos1_y+1, pos1_x+1)):
+                movimiento = ((pos1_y, pos1_x), (pos2_y, pos2_x))
+                self.hacer_movimiento(movimiento)
+                self.add_text_log(f"Jugador 1 movió de ({pos1_x}, {pos1_y}) a ({pos2_x}, {pos2_y})")
+                self.turno = JUGADOR_2
+                self.add_text_log("Turno del Bot")
+                self.realizar_movimiento_bot()
 
     def realizar_movimiento_bot(self):
         movimiento_bot = self.jugada_bot()
