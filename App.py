@@ -30,8 +30,8 @@ class App:
         dpg.add_text(text, wrap=200, parent=self.log_window)
     
     def draw_piece(self, x, y, player):
-        P2_COLOR = [226, 226, 226]
-        P1_COLOR = [84, 82, 79]
+        P2_COLOR = [84, 82, 79]
+        P1_COLOR = [226, 226, 226] 
         dpg.draw_circle(
             center=[x * self.CELL_SIZE + self.CELL_SIZE // 2, y * self.CELL_SIZE + self.CELL_SIZE // 2],
             radius=self.CELL_SIZE // 3,
@@ -162,11 +162,11 @@ class App:
         )
     
     def realizar_movimiento_jugador(self):
-        if self.turno == JUGADOR_1:
-            pos1_x = dpg.get_value(self.pos1_x)
-            pos1_y = dpg.get_value(self.pos1_y)
-            pos2_x = dpg.get_value(self.pos2_x)
-            pos2_y = dpg.get_value(self.pos2_y)
+        pos1_x = dpg.get_value(self.pos1_x)
+        pos1_y = dpg.get_value(self.pos1_y)
+        pos2_x = dpg.get_value(self.pos2_x)
+        pos2_y = dpg.get_value(self.pos2_y)
+        if self.turno == JUGADOR_1 and self.table[pos1_y][pos1_x] == JUGADOR_1 and self.table[pos2_y][pos2_x] == VACIO:
             movimiento = ((pos1_y, pos1_x), (pos2_y, pos2_x))
             self.hacer_movimiento(movimiento)
             self.add_text_log(f"Jugador 1 movió de ({pos1_x}, {pos1_y}) a ({pos2_x}, {pos2_y})")
