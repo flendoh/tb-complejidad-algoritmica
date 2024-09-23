@@ -51,7 +51,9 @@ class App:
             [VACIO, JUGADOR_2, VACIO, JUGADOR_2, VACIO, JUGADOR_2, VACIO, JUGADOR_2],
             [JUGADOR_2, VACIO, JUGADOR_2, VACIO, JUGADOR_2, VACIO, JUGADOR_2, VACIO]
         ]
+        dpg.delete_item(self.log_window, children_only=True)
         self.update_board()
+        self.jugar_damas()
     
     def draw_table(self):
         TABLE_SIZE = 8
@@ -110,8 +112,8 @@ class App:
         with dpg.window() as self.main_window:
             with dpg.menu_bar():
                 with dpg.menu(label="Archivo"):
-                    dpg.add_menu_item(label="Nuevo Juego")
-                    dpg.add_menu_item(label="Salir")
+                    dpg.add_menu_item(label="Nuevo Juego", callback=self.restart_game)
+                    dpg.add_menu_item(label="Salir", callback=dpg.stop_dearpygui)
                 with dpg.menu(label="Ayuda"):
                     dpg.add_menu_item(label="Acerca de")
 
@@ -137,7 +139,6 @@ class App:
                                                 label="", lock_min=True)
                     dpg.set_axis_limits(axis=default_y, ymin=0, ymax=self.CELL_SIZE*TABLE_SIZE)
                     self.restart_game()
-                    self.jugar_damas()
                 
         dpg.set_primary_window(self.main_window, True)
     
