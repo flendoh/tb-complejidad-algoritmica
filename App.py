@@ -119,15 +119,15 @@ class App:
                 with dpg.group(horizontal=False):
                     with dpg.child_window(width=235, height=400) as self.log_window:
                         pass
-                    dpg.add_text("Pos 1")
-                    self.pos1_x = dpg.add_input_int(label="X", default_value=0, width=100)
+                    dpg.add_text("Pos 1 (Seleccionar ficha)")
+                    self.pos1_x = dpg.add_input_int(label="X", default_value=0, width=100, callback=lambda: self.draw_highlight((dpg.get_value(self.pos1_y), dpg.get_value(self.pos1_x)), (dpg.get_value(self.pos2_y), dpg.get_value(self.pos2_x))))
                     dpg.add_same_line()
-                    self.pos1_y = dpg.add_input_int(label="Y", default_value=0, width=100)
-                    dpg.add_text("Pos 2")
-                    self.pos2_x = dpg.add_input_int(label="X", default_value=0, width=100)
+                    self.pos1_y = dpg.add_input_int(label="Y", default_value=0, width=100, callback=lambda: self.draw_highlight((dpg.get_value(self.pos1_y), dpg.get_value(self.pos1_x)), (dpg.get_value(self.pos2_y), dpg.get_value(self.pos2_x))))
+                    dpg.add_text("Pos 2 (Mover ficha)")
+                    self.pos2_x = dpg.add_input_int(label="X", default_value=0, width=100, callback=lambda: self.draw_highlight((dpg.get_value(self.pos1_y), dpg.get_value(self.pos1_x)), (dpg.get_value(self.pos2_y), dpg.get_value(self.pos2_x))))
                     dpg.add_same_line()
-                    self.pos2_y = dpg.add_input_int(label="Y", default_value=0, width=100)
-                    dpg.add_button(label="Mover", width=235, callback=self.jugar_damas)
+                    self.pos2_y = dpg.add_input_int(label="Y", default_value=0, width=100, callback=lambda: self.draw_highlight((dpg.get_value(self.pos1_y), dpg.get_value(self.pos1_x)), (dpg.get_value(self.pos2_y), dpg.get_value(self.pos2_x))))
+                    dpg.add_button(label="Mover", width=235, callback=self.realizar_movimiento_jugador)
 
                 with dpg.plot(no_menus=False, no_title=True, no_box_select=True, no_mouse_pos=True, width=525,height=525, equal_aspects=True) as self.table_window:
                     default_x = dpg.add_plot_axis(axis=0, no_gridlines=True, no_tick_marks=True, no_tick_labels=True,
@@ -141,31 +141,54 @@ class App:
                 
         dpg.set_primary_window(self.main_window, True)
     
+    def draw_highlight(self, pos1, pos2):
+        self.update_board()
+        color = [255, 0, 0, 255]
+        thickness = 3
+        dpg.draw_rectangle(
+            pmin=[pos1[1] * self.CELL_SIZE, pos1[0] * self.CELL_SIZE],
+            pmax=[(pos1[1] + 1) * self.CELL_SIZE, (pos1[0] + 1) * self.CELL_SIZE],
+            color=color,
+            thickness=thickness,
+            parent=self.table_window
+        )
+        dpg.draw_rectangle(
+            pmin=[pos2[1] * self.CELL_SIZE, pos2[0] * self.CELL_SIZE],
+            pmax=[(pos2[1] + 1) * self.CELL_SIZE, (pos2[0] + 1) * self.CELL_SIZE],
+            color=color,
+            thickness=thickness,
+            parent=self.table_window
+        )
+    
+    def realizar_movimiento_jugador(self):
+        if self.turno == JUGADOR_1:
+            pos1_x = dpg.get_value(self.pos1_x)
+            pos1_y = dpg.get_value(self.pos1_y)
+            pos2_x = dpg.get_value(self.pos2_x)
+            pos2_y = dpg.get_value(self.pos2_y)
+            movimiento = ((pos1_y, pos1_x), (pos2_y, pos2_x))
+            self.hacer_movimiento(movimiento)
+            self.add_text_log(f"Jugador 1 movió de ({pos1_x}, {pos1_y}) a ({pos2_x}, {pos2_y})")
+            self.turno = JUGADOR_2
+            self.add_text_log("Turno del Bot")
+            self.realizar_movimiento_bot()
+
+    def realizar_movimiento_bot(self):
+        movimiento_bot = self.jugada_bot()
+        if movimiento_bot:
+            self.hacer_movimiento(movimiento_bot)
+            self.draw_highlight(movimiento_bot[0], movimiento_bot[1])
+            self.add_text_log(f"Bot movió de {movimiento_bot[0]} a {movimiento_bot[1]}")
+            self.turno = JUGADOR_1
+            self.add_text_log("Turno del Jugador 1")
+        else:
+            self.add_text_log("El bot no puede hacer más movimientos.")
+
     def jugar_damas(self):
-        self.add_text_log("Empezo el juego.")
-        turno = JUGADOR_1
-        while True:
-            self.update_board()
-            if turno == JUGADOR_1:
-                self.add_text_log("Turno del Jugador 1")
-                pos1_x = dpg.get_value(self.pos1_x)
-                pos1_y = dpg.get_value(self.pos1_y)
-                pos2_x = dpg.get_value(self.pos2_x)
-                pos2_y = dpg.get_value(self.pos2_y)
-                movimiento = ((pos1_y, pos1_x), (pos2_y, pos2_x))
-                self.add_text_log(f"Jugador 1 movio de ({pos1_x}, {pos1_y}) a ({pos2_x}, {pos2_y})")
-                self.hacer_movimiento(movimiento)
-                turno = JUGADOR_2
-            else:
-                self.add_text_log("Turno del Bot")
-                movimiento_bot = self.jugada_bot()
-                if movimiento_bot:
-                    self.hacer_movimiento(movimiento_bot)
-                    self.add_text_log(f"Bot movio de {movimiento_bot[0]} a {movimiento_bot[1]}")
-                    turno = JUGADOR_1
-                else:
-                    self.add_text_log("El bot no puede hacer más movimientos.")
-                    break
+        self.add_text_log("Empezó el juego.")
+        self.turno = JUGADOR_1
+        self.update_board()
+        self.add_text_log("Turno del Jugador 1")
 
     def __del__(self):
         dpg.destroy_context()
