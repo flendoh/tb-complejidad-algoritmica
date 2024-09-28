@@ -90,14 +90,26 @@ class App:
 
                     for dir in direcciones:
                         nueva_fila, nueva_col = i + dir[0], j + dir[1]
-                        if 0 <= nueva_fila < 8 and 0 <= nueva_col < 8 and self.table[nueva_fila][nueva_col] == VACIO:
-                            movimientos.append(((i, j), (nueva_fila, nueva_col)))
+                        if 0 <= nueva_fila < 8 and 0 <= nueva_col < 8:
+                            if self.table[nueva_fila][nueva_col] == VACIO:
+                                movimientos.append(((i, j), (nueva_fila, nueva_col)))
+                            elif self.table[nueva_fila][nueva_col] != jugador:
+                                salto_fila, salto_col = nueva_fila + dir[0], nueva_col + dir[1]
+                                if 0 <= salto_fila < 8 and 0 <= salto_col < 8 and self.table[salto_fila][salto_col] == VACIO:
+                                    movimientos.append(((i, j), (salto_fila, salto_col)))
         return movimientos
     
     def hacer_movimiento(self, movimiento):
         (fila_actual, col_actual), (fila_nueva, col_nueva) = movimiento
         self.table[fila_nueva][col_nueva] = self.table[fila_actual][col_actual]
         self.table[fila_actual][col_actual] = VACIO
+        
+        # Movimiento de comer
+        if abs(fila_nueva - fila_actual) == 2:
+            fila_comida = (fila_actual + fila_nueva) // 2
+            col_comida = (col_actual + col_nueva) // 2
+            self.table[fila_comida][col_comida] = VACIO
+        
         self.update_board()
 
     def jugada_bot(self):
@@ -165,21 +177,30 @@ class App:
         pos1_y = dpg.get_value(self.pos1_y)
         pos2_x = dpg.get_value(self.pos2_x)
         pos2_y = dpg.get_value(self.pos2_y)
-        if self.turno == JUGADOR_1 and self.table[pos1_y][pos1_x] == JUGADOR_1 and self.table[pos2_y][pos2_x] == VACIO:
-            if ((pos2_y, pos2_x) == (pos1_y+1, pos1_x-1)) or ((pos2_y, pos2_x) == (pos1_y+1, pos1_x+1)):
-                movimiento = ((pos1_y, pos1_x), (pos2_y, pos2_x))
-                self.hacer_movimiento(movimiento)
+        if self.turno == JUGADOR_1 and self.es_movimiento_valido(pos1_x, pos1_y, pos2_x, pos2_y):
+            movimiento = ((pos1_y, pos1_x), (pos2_y, pos2_x))
+            self.hacer_movimiento(movimiento)
+            if abs(pos2_y - pos1_y) == 2:
+                self.add_text_log(f"Jugador 1 comió una ficha moviendo de ({pos1_x}, {pos1_y}) a ({pos2_x}, {pos2_y})")
+            else:
                 self.add_text_log(f"Jugador 1 movió de ({pos1_x}, {pos1_y}) a ({pos2_x}, {pos2_y})")
-                self.turno = JUGADOR_2
-                self.add_text_log("Turno del Bot")
-                self.realizar_movimiento_bot()
+            self.turno = JUGADOR_2
+            self.add_text_log("Turno del Bot")
+            self.realizar_movimiento_bot()
+
+    def es_movimiento_valido(self, pos1_x, pos1_y, pos2_x, pos2_y):
+        movimientos = self.movimientos_posibles(JUGADOR_1)
+        return ((pos1_y, pos1_x), (pos2_y, pos2_x)) in movimientos
 
     def realizar_movimiento_bot(self):
         movimiento_bot = self.jugada_bot()
         if movimiento_bot:
             self.hacer_movimiento(movimiento_bot)
             self.draw_highlight(movimiento_bot[0], movimiento_bot[1])
-            self.add_text_log(f"Bot movió de {movimiento_bot[0]} a {movimiento_bot[1]}")
+            if abs(movimiento_bot[1][0] - movimiento_bot[0][0]) == 2:
+                self.add_text_log(f"Bot comió una ficha moviendo de {movimiento_bot[0]} a {movimiento_bot[1]}")
+            else:
+                self.add_text_log(f"Bot movió de {movimiento_bot[0]} a {movimiento_bot[1]}")
             self.turno = JUGADOR_1
             self.add_text_log("Turno del Jugador 1")
         else:
