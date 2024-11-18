@@ -1,9 +1,9 @@
 import dearpygui.dearpygui as dpg
 import random
+import miniaudio
 dpg.create_context()
 from themes.theme import *
 from themes.font import *
-
 
 VACIO = 0
 JUGADOR_1 = 1
@@ -29,8 +29,22 @@ class App:
         dpg.set_viewport_max_height(600)
         dpg.set_viewport_max_width(800)
         dpg.set_viewport_resizable(False)
+
+        self.load_sounds()
         self.restart_game()
         dpg.start_dearpygui()
+    
+    def play_sound(self, sound):
+        try:
+            device = miniaudio.PlaybackDevice()
+            device.start(sound)
+            device.close()
+        except Exception as e:
+            print(f"Error al reproducir el sonido: {e}")
+        
+
+    def load_sounds(self):
+        self.piece_sound = miniaudio.stream_file("sounds/pieceCapture.wav")
 
     def add_text_log(self, text):
         dpg.add_text(text, wrap=200, parent=self.log_window)
@@ -129,7 +143,7 @@ class App:
         (fila_actual, col_actual), (fila_nueva, col_nueva) = movimiento
         self.table[fila_nueva][col_nueva] = self.table[fila_actual][col_actual]
         self.table[fila_actual][col_actual] = VACIO
-
+        self.play_sound(self.piece_sound)
         # Movimiento de comer
         if abs(fila_nueva - fila_actual) == 2:
             fila_comida = (fila_actual + fila_nueva) // 2
